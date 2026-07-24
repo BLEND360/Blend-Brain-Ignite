@@ -1,0 +1,308 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blend-knowledge-brain-platform"
+version = "0.1.0"
+description = "Backend platform for Blend Knowledge Brain"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "charset-normalizer>=3.4,<4",
+  "faiss-cpu>=1.14.3,<2",
+  "fastapi>=0.116,<1",
+  "numpy>=2.3,<3",
+  "opentelemetry-api>=1.36,<2",
+  "opentelemetry-exporter-otlp-proto-http>=1.36,<2",
+  "opentelemetry-instrumentation-fastapi>=0.57b0,<1",
+  "opentelemetry-sdk>=1.36,<2",
+  "openai>=2.46,<3",
+  "pydantic-settings>=2.10,<3",
+  "pypdf>=6.14,<7",
+  "python-docx>=1.2,<2",
+  "python-pptx>=1.0,<2",
+  "reportlab>=4.2,<5",
+  "snowflake-connector-python>=4.7.1,<5",
+  "structlog>=25.4,<26",
+  "tiktoken>=0.13,<1",
+  "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx2>=2.7,<3",
+  "import-linter>=2.3,<3",
+  "mypy>=1.17,<2",
+  "pytest>=8.4,<9",
+  "pytest-cov>=6.2,<7",
+  "python-pptx-stubs>=1.0,<2",
+  "ruff>=0.12,<1",
+  "types-reportlab>=4.2,<5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/blend_brain"]
+include = ["src/blend_brain", "migrations"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "A",
+  "ANN",
+  "ARG",
+  "ASYNC",
+  "B",
+  "BLE",
+  "C4",
+  "DTZ",
+  "E",
+  "F",
+  "FAST",
+  "FBT",
+  "I",
+  "N",
+  "PERF",
+  "PIE",
+  "PT",
+  "PTH",
+  "RET",
+  "RSE",
+  "RUF",
+  "S",
+  "SIM",
+  "SLF",
+  "T20",
+  "TC",
+  "TRY",
+  "UP",
+  "W",
+]
+ignore = [
+  "ANN401",
+  "TRY003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+# Runtime identifiers are allowlist-validated; all data values remain parameter-bound.
+"src/blend_brain/knowledge_enrichment/infrastructure/snowflake.py" = ["S608"]
+"src/blend_brain/knowledge_retrieval/infrastructure/snowflake.py" = ["S608"]
+"src/blend_brain/organizational_intelligence/infrastructure/snowflake.py" = ["S608"]
+"src/blend_brain/knowledge_lifecycle/infrastructure/snowflake.py" = ["S608"]
+"src/blend_brain/business_artifacts/infrastructure/snowflake.py" = ["S608"]
+"src/blend_brain/knowledge_catalog/infrastructure/snowflake.py" = ["S608"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["blend_brain"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+warn_unreachable = true
+enable_error_code = ["explicit-override", "ignore-without-code", "redundant-expr"]
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+  "--cov=blend_brain",
+  "--cov-report=term-missing:skip-covered",
+  "--cov-report=xml",
+  "--cov-fail-under=90",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["blend_brain"]
+
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]
+
+[tool.importlinter]
+root_packages = ["blend_brain"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.shared.domain"]
+forbidden_modules = [
+  "blend_brain.bootstrap",
+  "blend_brain.entrypoints",
+  "fastapi",
+  "opentelemetry",
+  "pydantic",
+  "structlog",
+]
+
+[[tool.importlinter.contracts]]
+name = "Entrypoints do not depend on bootstrap composition"
+type = "forbidden"
+source_modules = ["blend_brain.entrypoints"]
+forbidden_modules = ["blend_brain.bootstrap"]
+
+[[tool.importlinter.contracts]]
+name = "Document ingestion domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.document_ingestion.domain"]
+forbidden_modules = [
+  "blend_brain.document_ingestion.application",
+  "blend_brain.document_ingestion.infrastructure",
+  "fastapi",
+  "pydantic",
+  "pypdf",
+  "docx",
+  "pptx",
+]
+
+[[tool.importlinter.contracts]]
+name = "Document ingestion application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.document_ingestion.application"]
+forbidden_modules = [
+  "blend_brain.document_ingestion.infrastructure",
+  "pypdf",
+  "docx",
+  "pptx",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge enrichment domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_enrichment.domain"]
+forbidden_modules = [
+  "blend_brain.knowledge_enrichment.application",
+  "blend_brain.knowledge_enrichment.infrastructure",
+  "openai",
+  "pydantic",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge enrichment application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_enrichment.application"]
+forbidden_modules = [
+  "blend_brain.knowledge_enrichment.infrastructure",
+  "openai",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge retrieval domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_retrieval.domain"]
+forbidden_modules = [
+  "blend_brain.knowledge_retrieval.application",
+  "blend_brain.knowledge_retrieval.infrastructure",
+  "faiss",
+  "numpy",
+  "openai",
+  "pydantic",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge retrieval application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_retrieval.application"]
+forbidden_modules = [
+  "blend_brain.knowledge_retrieval.infrastructure",
+  "faiss",
+  "numpy",
+  "openai",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Organizational intelligence domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.organizational_intelligence.domain"]
+forbidden_modules = [
+  "blend_brain.organizational_intelligence.application",
+  "blend_brain.organizational_intelligence.infrastructure",
+  "faiss",
+  "numpy",
+  "openai",
+  "pydantic",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Organizational intelligence application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.organizational_intelligence.application"]
+forbidden_modules = [
+  "blend_brain.organizational_intelligence.infrastructure",
+  "faiss",
+  "numpy",
+  "openai",
+  "snowflake",
+  "tiktoken",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge lifecycle domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_lifecycle.domain"]
+forbidden_modules = [
+  "blend_brain.knowledge_lifecycle.application",
+  "blend_brain.knowledge_lifecycle.infrastructure",
+  "fastapi",
+  "openai",
+  "pydantic",
+  "snowflake",
+]
+
+[[tool.importlinter.contracts]]
+name = "Knowledge lifecycle application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.knowledge_lifecycle.application"]
+forbidden_modules = [
+  "blend_brain.knowledge_lifecycle.infrastructure",
+  "fastapi",
+  "openai",
+  "snowflake",
+]
+
+[[tool.importlinter.contracts]]
+name = "Business artifacts domain remains independent"
+type = "forbidden"
+source_modules = ["blend_brain.business_artifacts.domain"]
+forbidden_modules = [
+  "blend_brain.business_artifacts.application",
+  "blend_brain.business_artifacts.infrastructure",
+  "fastapi",
+  "openai",
+  "pydantic",
+  "reportlab",
+  "snowflake",
+]
+
+[[tool.importlinter.contracts]]
+name = "Business artifacts application does not depend on infrastructure"
+type = "forbidden"
+source_modules = ["blend_brain.business_artifacts.application"]
+forbidden_modules = [
+  "blend_brain.business_artifacts.infrastructure",
+  "fastapi",
+  "openai",
+  "reportlab",
+  "snowflake",
+]

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# JavaScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local configuration and IDE state
+.env
+.env.local
+!.env.example
+*.pem
+.local/
+.DS_Store
+.idea/
+.vscode/
+.PIH - Dataset/
